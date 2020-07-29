@@ -1,3 +1,10 @@
+var csvs = [
+    {
+        url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_april_26.csv",
+        date: "4/26/20"
+    }
+]
+
 function loadD3() {
     var svgHeight = 500;
     var svgWidth = 800;
@@ -14,7 +21,7 @@ function loadD3() {
         .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")")
 
-    d3.csv("https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_april_26.csv",
+    d3.csv(csvs[0].url,
         function (d) {
             return {
                 date: d.date,
@@ -25,20 +32,18 @@ function loadD3() {
             }
         },
         function (data) {
-            var dataByDate = d3.nest()
-                .key(function (d) { return d.date; })
-                .rollup(function (v) {
-                    return {
-                        tot_deaths: d3.sum(v, function (d) { return d.deaths; }),
-                        tot_deaths_lower: d3.sum(v, function (d) { return d.deaths_lower; }),
-                        tot_deaths_upper: d3.sum(v, function (d) { return d.deaths_upper; }),
-                    };
-                })
-                .entries(data);
+            var projectionLine = svg.append('path');
+            var interval = svg.append("path");
+            var deathLine = svg.append('path');
+            var line = svg.append('path');
 
+            var stateData = generateStateList(data);
+            loadSelectButton(stateData);
+
+            var dataByDate = getDataByDate(data);
             // x-axis
-            var xScale = d3.scaleTime()
-                .domain(d3.extent(dataByDate, function (d) { return d3.timeParse("%m/%d/%Y")(d.key); }))
+            var dateRange = d3.extent(dataByDate, function (d) { return d3.timeParse("%m/%d/%Y")(d.key); });
+            var xScale = d3.scaleTime().domain(dateRange)
                 .range([0, width]);
             var x = d3.axisBottom(xScale)
                 .tickFormat(d3.timeFormat("%B"));
@@ -47,45 +52,111 @@ function loadD3() {
                 .call(x);
 
             // y-axis
-            var yScale = d3.scaleLinear()
-                .domain([0, d3.max(dataByDate, function (d) { return +d.value.tot_deaths_upper; })])
+            var maxDeaths = d3.max(dataByDate, function (d) { return +d.value.tot_deaths_upper; });
+            var yScale = d3.scaleLinear().domain([0, maxDeaths])
                 .range([height, 0]);
             var y = d3.axisLeft(yScale);
             svg.append("g")
                 .call(y);
 
-            // confidence interval
-            svg.append("path")
-                .datum(dataByDate)
-                .attr("fill", "#cce5df")
-                .attr("stroke", "none")
-                .attr("d", d3.area()
-                    .x(function (d) { return xScale(d3.timeParse("%m/%d/%Y")(d.key)) })
-                    .y0(function (d) { return yScale(d.value.tot_deaths_lower) })
-                    .y1(function (d) { return yScale(d.value.tot_deaths_upper) })
-                );
+            updateState(data, null)
 
-            // main line
-            svg.append('path')
-                .datum(dataByDate)
-                .attr("fill", "none")
-                .attr("stroke", "steelblue")
-                .attr("stroke-width", 5)
-                .attr("d", d3.line()
-                    .x(function (d) { return xScale(d3.timeParse("%m/%d/%Y")(d.key)) })
-                    .y(function (d) { return yScale(d.value.tot_deaths) })
-                    .curve(d3.curveMonotoneX)
-                );
+            // initialize dropdown update
+            d3.select("#select-state").on("change", function (d) {
+                var selectedOption = d3.select(this).property("value")
+                updateState(data, selectedOption)
+            })
 
-            loadTooltip(dataByDate, svg, xScale, yScale);
-            loadSelectButton();
+            // projection date line
+            var projectionDateData = [
+                {
+                    x: d3.timeParse("%m/%d/%Y")(csvs[0].date),
+                    y: 0
+                },
+                {
+                    x: d3.timeParse("%m/%d/%Y")(csvs[0].date),
+                    y: maxDeaths
+                },
+            ];
+            var deathData = [
+                {
+                    x: dateRange[0],
+                    y: d3.max(dataByDate, function (d) { return +d.value.tot_deaths; })
+                },
+                {
+                    x: dateRange[1],
+                    y: d3.max(dataByDate, function (d) { return +d.value.tot_deaths; })
+                },
+            ];
+            generateProjectionLine(projectionLine, projectionDateData, xScale, yScale);
+            generateProjectionLine(deathLine, deathData, xScale, yScale);
+
+            // might need to move this for next data sets
+            function updateState(data, state) {
+                var dataFilter = data.filter(function (d) { return (state == null || state == 'all') || d.location == state })
+
+                var dataByDate = getDataByDate(dataFilter);
+
+                loadTooltip(dataByDate, svg, xScale, yScale);
+
+                // confidence interval
+                interval.datum(dataByDate)
+                    .transition()
+                    .duration(1000)
+                    .attr("fill", "#cce5df")
+                    .attr("stroke", "none")
+                    .attr("d", d3.area()
+                        .x(function (d) { return xScale(d3.timeParse("%m/%d/%Y")(d.key)) })
+                        .y0(function (d) { return yScale(d.value.tot_deaths_lower) })
+                        .y1(function (d) { return yScale(d.value.tot_deaths_upper) })
+                    );
+
+                // main line
+                line.datum(dataByDate)
+                    .transition()
+                    .duration(1000)
+                    .attr("fill", "none")
+                    .attr("stroke", "steelblue")
+                    .attr("stroke-width", 5)
+                    .attr("d", d3.line()
+                        .x(function (d) { return xScale(d3.timeParse("%m/%d/%Y")(d.key)) })
+                        .y(function (d) { return yScale(d.value.tot_deaths) })
+                        .curve(d3.curveMonotoneX)
+                    );
+
+                var deathData = [
+                    {
+                        x: dateRange[0],
+                        y: d3.max(dataByDate, function (d) { return +d.value.tot_deaths; })
+                    },
+                    {
+                        x: dateRange[1],
+                        y: d3.max(dataByDate, function (d) { return +d.value.tot_deaths; })
+                    },
+                ];
+
+                generateProjectionLine(deathLine, deathData, xScale, yScale);
+            }
         });
+
+    function getDataByDate(data) {
+        return d3.nest()
+            .key(function (d) { return d.date; })
+            .rollup(function (v) {
+                return {
+                    tot_deaths: d3.sum(v, function (d) { return d.deaths; }),
+                    tot_deaths_lower: d3.sum(v, function (d) { return d.deaths_lower; }),
+                    tot_deaths_upper: d3.sum(v, function (d) { return d.deaths_upper; }),
+                };
+            })
+            .entries(data);
+    }
 
     function loadTooltip(data, svg, xScale, yScale) {
 
         var bisect = d3.bisector(function (d) { return d3.timeParse("%m/%d/%Y")(d.key); }).left;
-        
-        // tooltip
+
+        // tooltip circle
         var focus = svg
             .append('g')
             .append('circle')
@@ -95,12 +166,9 @@ function loadD3() {
             .style("opacity", 0)
 
         // tootip text
-        var focusText = svg
-            .append('g')
-            .append('text')
-            .style("opacity", 0)
-            .attr("text-anchor", "left")
-            .attr("alignment-baseline", "middle")
+        var focusText = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
 
         // tooltip rect
         svg
@@ -127,9 +195,9 @@ function loadD3() {
                 .attr("cx", xScale(d3.timeParse("%m/%d/%Y")(selectedData.key)))
                 .attr("cy", yScale(selectedData.value.tot_deaths))
             focusText
-                .html("Date: " + selectedData.key + "<br>Total Deaths: " + selectedData.value.tot_deaths)
-                .attr("x", xScale(d3.timeParse("%m/%d/%Y")(selectedData.key)) + 15)
-                .attr("y", yScale(selectedData.value.tot_deaths))
+                .html("Date: " + selectedData.key + "<br>Total Deaths: " + Math.floor(selectedData.value.tot_deaths))
+                .style("left", (xScale(d3.timeParse("%m/%d/%Y")(selectedData.key))) + "px")
+                .style("top", (yScale(Math.floor(selectedData.value.tot_deaths))) + 100 + "px")
         }
         function mouseout() {
             focus.style("opacity", 0)
@@ -137,8 +205,34 @@ function loadD3() {
         }
     }
 
-    function loadSelectButton() {
-        
+    function generateProjectionLine(line, data, xScale, yScale) {
+        line.datum(data)
+            .attr("fill", "none")
+            .attr("stroke", "lightgray")
+            .style("stroke-dasharray", ("3, 3"))
+            .attr("stroke-width", 2)
+            .transition()
+            .duration(1000)
+            .attr("d", d3.line()
+                .x(function (d) { return xScale(d.x) })
+                .y(function (d) { return yScale(d.y) })
+            );
+    }
+
+    function generateStateList(data) {
+        const s = new Set();
+        data.forEach(a => s.add(a.location));
+        return Array.from(s);
+    }
+
+    function loadSelectButton(data) {
+        d3.select("#select-state")
+            .selectAll('options')
+            .data(data)
+            .enter()
+            .append('option')
+            .text(function (d) { return d; })
+            .attr("value", function (d) { return d; });
     }
 
 }
