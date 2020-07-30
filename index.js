@@ -2,6 +2,11 @@ var csvIndex = 0;
 var initial = true;
 var csvs = [
     {
+        url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_march_25.csv",
+        date: "3/25/20",
+        data: {}
+    },
+    {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_april_26.csv",
         date: "4/26/20",
         data: {}
