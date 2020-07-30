@@ -15,6 +15,7 @@ div.tooltip {
 
 .text-panel {
     float: left;
+    max-width: 200px;
 }
 
 .circle {

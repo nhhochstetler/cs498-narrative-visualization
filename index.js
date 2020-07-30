@@ -4,27 +4,33 @@ var csvs = [
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_march_25.csv",
         date: "3/25/20",
-        data: {}
+        data: {},
+        text: 'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1' +
+        'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1',
     },
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_april_26.csv",
         date: "4/26/20",
-        data: {}
+        data: {},
+        text: 'This is a test 2',
     },
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_may_25.csv",
         date: "5/25/20",
-        data: {}
+        data: {},
+        text: 'This is a test 3',
     },
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_june_25.csv",
         date: "6/25/20",
-        data: {}
+        data: {},
+        text: 'This is a test 4',
     },
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_july_14.csv",
         date: "7/14/20",
-        data: {}
+        data: {},
+        text: 'This is a test 5',
     }
 ];
 
@@ -58,6 +64,7 @@ var yScale;
 var xAxis = svg.append("g");
 var yAxis = svg.append("g");
 var dateRange;
+var maxDeaths;
 
 function loadD3() {
     d3.csv(csvs[csvIndex].url,
@@ -75,30 +82,7 @@ function loadD3() {
             var stateData = generateStateList(data);
             loadSelectButton(stateData);
 
-            var dataByDate = getDataByDate(data);
-            // x-axis
-            dateRange = d3.extent(dataByDate, function (d) { return d3.timeParse("%m/%d/%Y")(d.key); });
-            xScale = d3.scaleTime().domain(dateRange)
-                .range([0, width]);
-            var x = d3.axisBottom(xScale)
-                .tickFormat(d3.timeFormat("%B"));
-            xAxis
-                .transition()
-                .duration(initial ? 0 : 1000)
-                .attr("transform", "translate(0," + height + ")")
-                .call(x);
-
-            // y-axis
-            var maxDeaths = d3.max(dataByDate, function (d) { return +d.value.tot_deaths_upper; });
-            yScale = d3.scaleLinear().domain([0, maxDeaths])
-                .range([height, 0]);
-            var y = d3.axisLeft(yScale);
-            yAxis
-                .transition()
-                .duration(initial ? 0 : 1000)
-                .call(y);
-
-            updateState(data, null, xScale, yScale);
+            updateState(null);
 
             // projection date line
             var projectionDateData = [
@@ -131,7 +115,30 @@ function getDataByDate(data) {
 }
 
 // might need to move this for next data sets
-function updateState(data, state, xScale, yScale) {
+function updateState(state) {
+    var dataFilter = csvs[csvIndex].data.filter(function (d) { return (state == null || state == 'USA') || d.location == state })
+    var dataByDate = getDataByDate(dataFilter);
+    // x-axis
+    dateRange = d3.extent(dataByDate, function (d) { return d3.timeParse("%m/%d/%Y")(d.key); });
+    xScale = d3.scaleTime().domain(dateRange)
+        .range([0, width]);
+    var x = d3.axisBottom(xScale)
+        .tickFormat(d3.timeFormat("%B"));
+    xAxis
+        .transition()
+        .duration(initial ? 0 : 1000)
+        .attr("transform", "translate(0," + height + ")")
+        .call(x);
+
+    // y-axis
+    maxDeaths = d3.max(dataByDate, function (d) { return +d.value.tot_deaths_upper; });
+    yScale = d3.scaleLinear().domain([0, maxDeaths])
+        .range([height, 0]);
+    var y = d3.axisLeft(yScale);
+    yAxis
+        .transition()
+        .duration(initial ? 0 : 1000)
+        .call(y);
 
     // confidence interval
     // interval.datum(dataByDate)
@@ -266,7 +273,7 @@ function loadSelectButton(data) {
     // initialize dropdown update
     d3.select("#select-state").on("change", function (d) {
         var selectedOption = d3.select(this).property("value")
-        updateState(csvs[csvIndex].data, selectedOption, xScale, yScale);
+        updateState(selectedOption);
     })
 }
 
@@ -275,7 +282,7 @@ function loadNext() {
         csvIndex++;
     }
     loadD3();
-    d3.select("#current-date").text(csvs[csvIndex].date)
+    loadHtmlText();
 }
 
 function loadPrevious() {
@@ -283,7 +290,13 @@ function loadPrevious() {
         csvIndex--;
     }
     loadD3();
-    d3.select("#current-date").text(csvs[csvIndex].date)
+    loadHtmlText();
+}
+
+function loadHtmlText() {
+    d3.select("#current-date").text(csvs[csvIndex].date);
+    d3.select("#text-story").text(csvs[csvIndex].text);
 }
 
 loadD3();
+loadHtmlText();
