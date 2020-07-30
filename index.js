@@ -20,6 +20,11 @@ var csvs = [
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_june_25.csv",
         date: "6/25/20",
         data: {}
+    },
+    {
+        url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_july_14.csv",
+        date: "7/14/20",
+        data: {}
     }
 ];
 
