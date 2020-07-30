@@ -113,7 +113,7 @@ function getDataByDate(data) {
 
 // might need to move this for next data sets
 function updateState(data, state, xScale, yScale) {
-    var dataFilter = data.filter(function (d) { return (state == null || state == 'all') || d.location == state })
+    var dataFilter = data.filter(function (d) { return (state == null || state == 'USA') || d.location == state })
 
     var dataByDate = getDataByDate(dataFilter);
 
@@ -233,9 +233,11 @@ function generateStateList(data) {
 }
 
 function loadSelectButton(data) {
+    d3.select("#select-state").html("");
+
     d3.select("#select-state")
         .selectAll('options')
-        .data(data)
+        .data(['USA', ...data])
         .enter()
         .append('option')
         .text(function (d) { return d; })
@@ -253,6 +255,7 @@ function loadNext() {
         csvIndex++;
     }
     loadD3(csvIndex);
+    d3.select("#current-date").text(csvs[csvIndex].date)
 }
 
 function loadPrevious() {
@@ -260,6 +263,7 @@ function loadPrevious() {
         csvIndex--;
     }
     loadD3(csvIndex);
+    d3.select("#current-date").text(csvs[csvIndex].date)
 }
 
 loadD3(0);
