@@ -148,7 +148,7 @@ function updateState(data, state, xScale, yScale) {
             .transition()
             .duration(1000)
             .attr("fill", "none")
-            .attr("stroke", "steelblue")
+            .attr("stroke", x == csvIndex ? "steelblue" : "lightgray")
             .attr("stroke-width", 5)
             .attr("d", d3.line()
                 .x(function (d) { return xScale(d3.timeParse("%m/%d/%Y")(d.key)) })
