@@ -71,7 +71,6 @@ function loadD3() {
             }
         },
         function (data) {
-            console.log(data);
             csvs[csvIndex].data = data;
             var stateData = generateStateList(data);
             loadSelectButton(stateData);
