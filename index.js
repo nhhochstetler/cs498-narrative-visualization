@@ -3,11 +3,13 @@ var initial = true;
 var csvs = [
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_april_26.csv",
-        date: "4/26/20"
+        date: "4/26/20",
+        data: {}
     },
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_may_25.csv",
-        date: "5/25/20"
+        date: "5/25/20",
+        data: {}
     }
 ];
 
@@ -27,9 +29,13 @@ var svg = d3.select('svg')
         "translate(" + margin.left + "," + margin.top + ")");
 
 var projectionLine = svg.append('path');
-var interval = svg.append('path');
+// var interval = svg.append('path');
 var deathLine = svg.append('path');
-var line = svg.append('path');
+var lines = [];
+for (var i = 0; i < csvs.length; i++) {
+    lines.push(svg.append('path'));
+}
+
 
 var xScale;
 var yScale;
@@ -38,10 +44,8 @@ var xAxis = svg.append("g");
 var yAxis = svg.append("g");
 var dateRange;
 
-var currData;
-
-function loadD3(i) {
-    d3.csv(csvs[i].url,
+function loadD3() {
+    d3.csv(csvs[csvIndex].url,
         function (d) {
             return {
                 date: d.date,
@@ -52,7 +56,7 @@ function loadD3(i) {
             }
         },
         function (data) {
-            currData = data;
+            csvs[csvIndex].data = data;
             var stateData = generateStateList(data);
             loadSelectButton(stateData);
 
@@ -84,11 +88,11 @@ function loadD3(i) {
             // projection date line
             var projectionDateData = [
                 {
-                    x: d3.timeParse("%m/%d/%Y")(csvs[i].date),
+                    x: d3.timeParse("%m/%d/%Y")(csvs[csvIndex].date),
                     y: 0
                 },
                 {
-                    x: d3.timeParse("%m/%d/%Y")(csvs[i].date),
+                    x: d3.timeParse("%m/%d/%Y")(csvs[csvIndex].date),
                     y: maxDeaths
                 },
             ];
@@ -113,50 +117,51 @@ function getDataByDate(data) {
 
 // might need to move this for next data sets
 function updateState(data, state, xScale, yScale) {
-    var dataFilter = data.filter(function (d) { return (state == null || state == 'USA') || d.location == state })
-
-    var dataByDate = getDataByDate(dataFilter);
-
-    loadTooltip(dataByDate, svg, xScale, yScale);
 
     // confidence interval
-    interval.datum(dataByDate)
-        .transition()
-        .duration(1000)
-        .attr("fill", "#cce5df")
-        .attr("stroke", "none")
-        .attr("d", d3.area()
-            .x(function (d) { return xScale(d3.timeParse("%m/%d/%Y")(d.key)) })
-            .y0(function (d) { return yScale(d.value.tot_deaths_lower) })
-            .y1(function (d) { return yScale(d.value.tot_deaths_upper) })
-        );
+    // interval.datum(dataByDate)
+    //     .transition()
+    //     .duration(1000)
+    //     .attr("fill", "#cce5df")
+    //     .attr("stroke", "none")
+    //     .attr("d", d3.area()
+    //         .x(function (d) { return xScale(d3.timeParse("%m/%d/%Y")(d.key)) })
+    //         .y0(function (d) { return yScale(d.value.tot_deaths_lower) })
+    //         .y1(function (d) { return yScale(d.value.tot_deaths_upper) })
+    //     );
 
     // main line
-    line.datum(dataByDate)
-        .transition()
-        .duration(1000)
-        .attr("fill", "none")
-        .attr("stroke", "steelblue")
-        .attr("stroke-width", 5)
-        .attr("d", d3.line()
-            .x(function (d) { return xScale(d3.timeParse("%m/%d/%Y")(d.key)) })
-            .y(function (d) { return yScale(d.value.tot_deaths) })
-            .curve(d3.curveMonotoneX)
-        );
+    for (var x = 0; x <= csvIndex; x++) {
+        var dataFilter = csvs[x].data.filter(function (d) { return (state == null || state == 'USA') || d.location == state })
 
+        var dataByDate = getDataByDate(dataFilter);
 
-    var deathData = [
-        {
-            x: dateRange[0],
-            y: d3.max(dataByDate, function (d) { return +d.value.tot_deaths; })
-        },
-        {
-            x: dateRange[1],
-            y: d3.max(dataByDate, function (d) { return +d.value.tot_deaths; })
-        },
-    ];
+        loadTooltip(dataByDate, svg, xScale, yScale);
 
-    generateProjectionLine(deathLine, deathData, xScale, yScale);
+        lines[x].datum(dataByDate)
+            .transition()
+            .duration(1000)
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 5)
+            .attr("d", d3.line()
+                .x(function (d) { return xScale(d3.timeParse("%m/%d/%Y")(d.key)) })
+                .y(function (d) { return yScale(d.value.tot_deaths) })
+                .curve(d3.curveMonotoneX)
+            );
+        var deathData = [
+            {
+                x: dateRange[0],
+                y: d3.max(dataByDate, function (d) { return +d.value.tot_deaths; })
+            },
+            {
+                x: dateRange[1],
+                y: d3.max(dataByDate, function (d) { return +d.value.tot_deaths; })
+            },
+        ];
+
+        generateProjectionLine(deathLine, deathData, xScale, yScale);
+    }
 }
 
 function loadTooltip(data, svg, xScale, yScale) {
@@ -246,7 +251,7 @@ function loadSelectButton(data) {
     // initialize dropdown update
     d3.select("#select-state").on("change", function (d) {
         var selectedOption = d3.select(this).property("value")
-        updateState(currData, selectedOption, xScale, yScale);
+        updateState(csvs[csvIndex].data, selectedOption, xScale, yScale);
     })
 }
 
@@ -254,7 +259,7 @@ function loadNext() {
     if (csvIndex < csvs.length - 1) {
         csvIndex++;
     }
-    loadD3(csvIndex);
+    loadD3();
     d3.select("#current-date").text(csvs[csvIndex].date)
 }
 
@@ -262,8 +267,8 @@ function loadPrevious() {
     if (csvIndex > 0) {
         csvIndex--;
     }
-    loadD3(csvIndex);
+    loadD3();
     d3.select("#current-date").text(csvs[csvIndex].date)
 }
 
-loadD3(0);
+loadD3();
