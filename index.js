@@ -6,31 +6,35 @@ var csvs = [
         date: "3/25/20",
         data: {},
         text: 'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1' +
-        'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1',
+            'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1',
     },
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_april_26.csv",
         date: "4/26/20",
         data: {},
-        text: 'This is a test 2',
+        text: 'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1' +
+            'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1',
     },
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_may_25.csv",
         date: "5/25/20",
         data: {},
-        text: 'This is a test 3',
+        text: 'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1' +
+            'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1',
     },
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_june_25.csv",
         date: "6/25/20",
         data: {},
-        text: 'This is a test 4',
+        text: 'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1' +
+            'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1',
     },
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_july_14.csv",
         date: "7/14/20",
         data: {},
-        text: 'This is a test 5',
+        text: 'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1' +
+            'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1',
     }
 ];
 
@@ -50,13 +54,15 @@ var svg = d3.select('svg')
         "translate(" + margin.left + "," + margin.top + ")");
 
 var projectionLine = svg.append('path');
-// var interval = svg.append('path');
-var deathLine = svg.append('path');
-var lines = [];
-for (var i = 0; i < csvs.length; i++) {
-    lines.push(svg.append('path'));
-}
+var interval = svg.append('path');
+var deathLines = [];
+deathLines.push(svg.append('path'));
 
+var deathLabels = [];
+deathLabels.push(svg.append("text"));
+
+var lines = [];
+lines.push(svg.append('path'));
 
 var xScale;
 var yScale;
@@ -65,6 +71,8 @@ var xAxis = svg.append("g");
 var yAxis = svg.append("g");
 var dateRange;
 var maxDeaths;
+
+var monthLabel = svg.append('text');
 
 function loadD3() {
     d3.csv(csvs[csvIndex].url,
@@ -87,15 +95,16 @@ function loadD3() {
             // projection date line
             var projectionDateData = [
                 {
-                    x: d3.timeParse("%m/%d/%Y")(csvs[csvIndex].date),
-                    y: 0
+                    x: xScale(d3.timeParse("%m/%d/%Y")(csvs[csvIndex].date)),
+                    y: yScale(0)
                 },
                 {
-                    x: d3.timeParse("%m/%d/%Y")(csvs[csvIndex].date),
-                    y: maxDeaths
+                    x: xScale(d3.timeParse("%m/%d/%Y")(csvs[csvIndex].date)),
+                    y: yScale(maxDeaths)
                 },
             ];
-            generateProjectionLine(projectionLine, projectionDateData, xScale, yScale);
+            generateProjectionLine(projectionLine, projectionDateData);
+            addMonthLabel(monthLabel, d3.timeParse("%m/%d/%Y")(csvs[csvIndex].date), xScale)
 
             initial = false;
         });
@@ -141,16 +150,16 @@ function updateState(state) {
         .call(y);
 
     // confidence interval
-    // interval.datum(dataByDate)
-    //     .transition()
-    //     .duration(1000)
-    //     .attr("fill", "#cce5df")
-    //     .attr("stroke", "none")
-    //     .attr("d", d3.area()
-    //         .x(function (d) { return xScale(d3.timeParse("%m/%d/%Y")(d.key)) })
-    //         .y0(function (d) { return yScale(d.value.tot_deaths_lower) })
-    //         .y1(function (d) { return yScale(d.value.tot_deaths_upper) })
-    //     );
+    interval.datum(dataByDate)
+        .transition()
+        .duration(1000)
+        .attr("fill", "#cce5df")
+        .attr("stroke", "none")
+        .attr("d", d3.area()
+            .x(function (d) { return xScale(d3.timeParse("%m/%d/%Y")(d.key)) })
+            .y0(function (d) { return yScale(d.value.tot_deaths_lower) })
+            .y1(function (d) { return yScale(d.value.tot_deaths_upper) })
+        );
 
     // main line
     for (var x = 0; x <= csvIndex; x++) {
@@ -173,16 +182,17 @@ function updateState(state) {
             );
         var deathData = [
             {
-                x: dateRange[0],
-                y: d3.max(dataByDate, function (d) { return +d.value.tot_deaths; })
+                x: xScale(dateRange[0]),
+                y: yScale(d3.max(dataByDate, function (d) { return +d.value.tot_deaths; }))
             },
             {
-                x: dateRange[1],
-                y: d3.max(dataByDate, function (d) { return +d.value.tot_deaths; })
+                x: xScale(dateRange[1]),
+                y: yScale(d3.max(dataByDate, function (d) { return +d.value.tot_deaths; }))
             },
         ];
 
-        generateProjectionLine(deathLine, deathData, xScale, yScale);
+        generateProjectionLine(deathLines[x], deathData);
+        addMaxDeathLabel(deathLabels[x], csvs[x].date, yScale, d3.max(dataByDate, function (d) { return +d.value.tot_deaths; }));
     }
 }
 
@@ -239,18 +249,42 @@ function loadTooltip(data, svg, xScale, yScale) {
     }
 }
 
-function generateProjectionLine(line, data, xScale, yScale) {
+function generateProjectionLine(line, data) {
     line.datum(data)
+        .transition()
+        .duration(1000)
         .attr("fill", "none")
         .attr("stroke", "lightgray")
         .style("stroke-dasharray", ("3, 3"))
         .attr("stroke-width", 2)
-        .transition()
-        .duration(1000)
         .attr("d", d3.line()
-            .x(function (d) { return xScale(d.x) })
-            .y(function (d) { return yScale(d.y) })
+            .x(function (d) { return d.x })
+            .y(function (d) { return d.y })
         );
+}
+
+function addMaxDeathLabel(text, month, yScale, y) {
+    text
+        .transition()
+        .duration(initial ? 0 : 1000)
+        .attr("transform", "translate(0," + yScale(y) + ")")
+        .attr("dx", "5px")
+        .attr("dy", "-3px")
+        .attr("class", "horizontal-label")
+        .attr("text-anchor", "start")
+        .text(month + " Max Deaths: " + Math.floor(y));
+}
+
+function addMonthLabel(text, month, xScale) {
+    text
+        .transition()
+        .duration(initial ? 0 : 1000)
+        .attr("transform", "translate(" + xScale(month) + ",0)")
+        .attr("dx", "5px")
+        .attr("dy", "-3px")
+        .attr("class", "horizontal-label")
+        .attr("text-anchor", "start")
+        .text("Current Prediction Date: " + (month.getMonth() + 1) + '/' + month.getDate() + '/' + month.getFullYear());
 }
 
 function generateStateList(data) {
@@ -281,12 +315,25 @@ function loadNext() {
     if (csvIndex < csvs.length - 1) {
         csvIndex++;
     }
+
+    // add a new line to add to the graph
+    lines.push(svg.append('path'));
+    deathLines.push(svg.append('path'));
+    deathLabels.push(svg.append("text"));
+
     loadD3();
     loadHtmlText();
 }
 
 function loadPrevious() {
     if (csvIndex > 0) {
+        lines[csvIndex].remove();
+        deathLines[csvIndex].remove();
+        deathLabels[csvIndex].remove();
+        lines.splice(csvIndex, 1);
+        deathLines.splice(csvIndex, 1);
+        deathLabels.splice(csvIndex, 1);
+
         csvIndex--;
     }
     loadD3();

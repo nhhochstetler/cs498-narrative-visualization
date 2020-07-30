@@ -26,3 +26,7 @@ div.tooltip {
     color: black;
     border-radius: 50%;
 }
+
+.horizontal-label {
+    font-size: 10px;
+}
