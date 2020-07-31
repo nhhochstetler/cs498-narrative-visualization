@@ -338,6 +338,27 @@ function loadPrevious() {
 function loadHtmlText() {
     d3.select("#current-date").text("Projection as of " + csvs[csvIndex].date);
     d3.select("#text-story").text(csvs[csvIndex].text);
+    d3.select("#current-page").text((csvIndex + 1) + "/" + csvs.length);
+
+    if (csvIndex == 0) {
+        // disable previous
+        d3.select("#previous").attr('disabled', 'true');
+    } else if (csvIndex == csvs.length - 1) {
+        // disable next
+        d3.select("#next").attr('disabled', 'true');
+    } else { 
+        d3.select("#previous").attr('disabled', null);
+        d3.select("#next").attr('disabled', null);
+    }
+}
+
+
+function isFirstPage() {
+    console.log('here', csvIndex)
+    return csvIndex == 0;
+}
+function isLastPage() {
+    return csvIndex == csvs.length - 1;
 }
 
 loadD3();
