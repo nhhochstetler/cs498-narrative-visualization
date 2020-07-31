@@ -5,36 +5,31 @@ var csvs = [
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_march_25.csv",
         date: "3/25/20",
         data: {},
-        text: 'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1' +
-            'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1',
+        text: 'This is the initial projections of the number of deaths due to Covid-19 in the USA as of March 25th. It appears that the total numbers flatten out and the rate of deaths will approach 0 in July.',
     },
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_april_26.csv",
         date: "4/26/20",
         data: {},
-        text: 'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1' +
-            'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1',
+        text: 'In April, the projections of the number of deaths due to the coronavirus actually drops from the previous month. In this projection, we approach a death rate of 0 in the month of June, and at a lower total death toll.',
     },
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_may_25.csv",
         date: "5/25/20",
         data: {},
-        text: 'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1' +
-            'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1',
+        text: 'In May\'s projection we see a large increase in predicted deaths, almost double the previous months projections. Furthermore, the month in which the death rate approaches 0 is pushed out even farther.',
     },
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_june_25.csv",
         date: "6/25/20",
         data: {},
-        text: 'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1' +
-            'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1',
+        text: 'Again in June we see the projections continue to increase. What is interesting with this month\'s projection is that the death rate never approaches 0, it continues at an increasing rate well into October.',
     },
     {
         url: "https://raw.githubusercontent.com/nhhochstetler/cs498-narrative-visualization/master/data/proj_july_14.csv",
         date: "7/14/20",
         data: {},
-        text: 'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1' +
-            'This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1This is a test 1',
+        text: 'In the final month of available projection data, we still see the projections continue to rise, as well as the rate of deaths. The latest projection puts the death toll in the USA at 216,075 people by November. The rend of the projection says that this a number that will continue to increase, and the history of the projections show that the projections will continue to surpass what we previously thought.',
     }
 ];
 
@@ -341,7 +336,7 @@ function loadPrevious() {
 }
 
 function loadHtmlText() {
-    d3.select("#current-date").text(csvs[csvIndex].date);
+    d3.select("#current-date").text("Projection as of " + csvs[csvIndex].date);
     d3.select("#text-story").text(csvs[csvIndex].text);
 }
 

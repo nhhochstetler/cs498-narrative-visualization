@@ -7,12 +7,17 @@
 </head>
 
 <body>
-    <h1>Projected Coronavirus Statistics</h1>
+    <h1>Projected Coronavirus Deaths in the USA by Month</h1>
+    <h3>Description</h3>
+    <p>
+        This interactive slideshow visualizes the total predicted deaths in the USA due to Covid-19 over time. Each step in the slide show will take you
+        to the next projection date (usually about a month in advance). What you will be able to see is how our projections
+        of Coronavirus deaths have changed as time continues and we exceed projections.
+    </p>
     <div>
-        <h2>By Month</h2>
         <span>
             <button onclick="loadPrevious()" id="previous" class="circle">&#8249;</button>
-            <span id="current-date">3/25/20</span>
+            <span id="current-page">1/6</span>
             <button onclick="loadNext()" id="next" class="circle">&#8250;</button>
         </span>
         <select id="select-state">
@@ -21,12 +26,39 @@
     </div>
     <div>
         <div class="text-panel">
-            <p id="text-story">ytest</p>
+            <h4 id="current-date"></h4>
+            <p id="text-story"></p>
         </div>
         <div>
             <svg></svg>
         </div>
     </div>
+    <h3>Reading the Graph</h3>
+    <p>
+        The primary visualization of the graph is the blue line, which represents projected deaths from Covid-19 by month, where 
+        the x-axis corresponds to the date and the y-axis corresponds to the total amount of deaths. The light blue area that 
+        surrounds the line represents a confidence interval, denoting the extremes that the prediction could exist between.
+    </p>
+    <p>
+        One important visual element of the graph is the dashed vertical line, which represents the date where the data 
+        starts being a prediction. Every date before the line is the actual data (meaning the actual number of deaths that occured), 
+        and everything after the line are predictions. You'll also notice that this is where the confidence interval begins, which 
+        makes sense because it is where the predictions begin. 
+    </p>
+    <p>
+        The next element you'll notice is a dashed horizontal line, which will specify the maximum number of deaths that have
+        been predicted at the specified date of projections. 
+    </p>
+    <p>
+        You also have the ability to filter down by state for a given projection data set. This will allow you to look at the 
+        data for a specific state, as opposed to the country as a whole. Furthermore, you can hover over the line and get a specific 
+        number of deaths according to a specific date, depending on where you mouse over.
+    </p>
+    <p>
+        To advance to the next (or previous slide, if applicable), simply click the arrow buttons to load the next projection. The
+        current line of projection will remain on the graph in gray, in addition to the max deaths line for that projection, in order
+        for you to compare the changes over time. Every other element of the chart will update to the latest projection data.
+    </p>
 
 </body>
 <script src="https://d3js.org/d3.v4.min.js"></script>
