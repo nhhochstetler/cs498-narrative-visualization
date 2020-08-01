@@ -235,8 +235,8 @@ function loadTooltip(data, svg, xScale, yScale) {
             .attr("cy", yScale(selectedData.value.tot_deaths))
         focusText
             .html("Date: " + selectedData.key + "<br>Total Deaths: " + Math.floor(selectedData.value.tot_deaths))
-            .style("left", (xScale(d3.timeParse("%m/%d/%Y")(selectedData.key))) + "px")
-            .style("top", (yScale(Math.floor(selectedData.value.tot_deaths))) + 100 + "px")
+            .style("left", (xScale(d3.timeParse("%m/%d/%Y")(selectedData.key))) + 100 + "px")
+            .style("top", (yScale(Math.floor(selectedData.value.tot_deaths))) + 180 + "px")
     }
     function mouseout() {
         focus.style("opacity", 0)
@@ -351,7 +351,6 @@ function loadHtmlText() {
         d3.select("#next").attr('disabled', null);
     }
 }
-
 
 function isFirstPage() {
     console.log('here', csvIndex)
